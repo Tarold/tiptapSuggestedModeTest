@@ -8,6 +8,7 @@ import CollaborationHistory from '@tiptap-pro/extension-collaboration-history';
 import React, { useCallback, useEffect } from 'react';
 import * as Y from 'yjs';
 
+import { setupProvider } from './demo-setup';
 import { renderDate } from './utils';
 import { VersioningModal } from './VersioningModal';
 
@@ -64,7 +65,7 @@ const dayOfTheYear = Math.floor(
 
 const provider = new TiptapCollabProvider({
   appId: '7j9y6m10',
-  name: `room-collab-history-${dayOfTheYear}`,
+  name: `room-collab-history-${dayOfTheYear}-snapshot-compare-${Date.now()}`,
   document: doc,
   user: pickedName,
 });
@@ -151,17 +152,13 @@ const MenuBar = ({ editor }) => {
   );
 };
 
-const App = () => {
+const SnapshotCompare = () => {
   const [latestVersion, setLatestVersion] = React.useState(null);
   const [currentVersion, setCurrentVersion] = React.useState(null);
   const [versions, setVersions] = React.useState([]);
   const [isAutoVersioning, setIsAutoVersioning] = React.useState(false);
-  const [versioningModalOpen, setVersioningModalOpen] = React.useState(false);
+  const [versioningModalOpen, setVersioningModalOpen] = React.useState(true);
   const [hasChanges, setHasChanges] = React.useState(false);
-
-  const showVersioningModal = useCallback(() => {
-    setVersioningModalOpen(true);
-  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -192,7 +189,11 @@ const App = () => {
       doc.on('update', onUpdate);
     };
 
-    provider.on('synced', onSynced);
+    if (provider.isSynced) {
+      onSynced();
+    } else {
+      provider.on('synced', onSynced);
+    }
 
     return () => {
       provider.off('synced', onSynced);
@@ -226,21 +227,6 @@ const App = () => {
     setVersioningModalOpen(false);
   }, []);
 
-  const handleRevert = useCallback(
-    (version, versionData) => {
-      const versionTitle = versionData
-        ? versionData.name || renderDate(versionData.date)
-        : version;
-
-      editor.commands.revertToVersion(
-        version,
-        `Revert to ${versionTitle}`,
-        `Unsaved changes before revert to ${versionTitle}`
-      );
-    },
-    [editor]
-  );
-
   if (!editor) {
     return null;
   }
@@ -251,10 +237,21 @@ const App = () => {
         versions={versions}
         isOpen={versioningModalOpen}
         onClose={handleVersioningClose}
-        onRevert={handleRevert}
         currentVersion={currentVersion}
         latestVersion={latestVersion}
         provider={provider}
+        onRevert={(version) => {
+          const versionData = versions.find((v) => v.version === version);
+          const versionTitle = versionData
+            ? versionData.name || renderDate(versionData.date)
+            : version;
+
+          editor.commands.revertToVersion(
+            version,
+            `Revert to ${versionTitle}`,
+            `Unsaved changes before revert to ${versionTitle}`
+          );
+        }}
       />
       <div className="col-group">
         <div className="main">
@@ -317,7 +314,9 @@ const App = () => {
             <button
               className="primary"
               type="button"
-              onClick={showVersioningModal}
+              onClick={() => {
+                setVersioningModalOpen(true);
+              }}
             >
               Show history
             </button>
@@ -326,6 +325,24 @@ const App = () => {
       </div>
     </>
   );
+};
+
+// Sets up the demo snapshots, not needed for the extension
+const promiseToWaitFor = setupProvider(provider, doc);
+
+const App = () => {
+  const [isReady, setIsReady] = React.useState(false);
+
+  useEffect(() => {
+    promiseToWaitFor.then(() => {
+      setIsReady(true);
+    });
+  });
+
+  if (!isReady) {
+    return <div></div>;
+  }
+  return <SnapshotCompare />;
 };
 
 export default App;

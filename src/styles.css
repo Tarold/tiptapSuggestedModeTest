@@ -1,3 +1,79 @@
+.diff-users {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 2rem;
+}
+
+.diff-user {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  white-space: nowrap;
+
+  @media (max-width: 540px) {
+    font-size: 0.875rem;
+  }
+}
+
+.diff-user-color {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+/* In editor diffing styles */
+
+[data-diff-user-id] {
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+
+[data-diff-user-id]::before {
+  content: attr(data-diff-user-id);
+  font-weight: normal;
+  line-height: normal;
+  visibility: hidden;
+  background-color: #fff;
+  border: 1px solid var(--black);
+  color: var(--black);
+  text-align: center;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  padding: 3px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: 105%;
+  left: 0;
+  white-space: nowrap;
+}
+
+[data-diff-user-id]:hover::before {
+  visibility: visible;
+}
+
+[data-diff-type='inline-insert'],
+[data-diff-type='inline-update'],
+[data-diff-type='block-insert'] {
+  color: var(--black);
+  background-color: rgb(226, 255, 232);
+  position: relative;
+}
+
+[data-diff-type='inline-delete'],
+[data-diff-type='inline-update'],
+[data-diff-type='block-delete'] {
+  color: var(--black);
+  background-color: rgb(255, 226, 226);
+  text-decoration: line-through;
+  position: relative;
+}
+
 /* Basic editor styles */
 .tiptap {
   :first-child {

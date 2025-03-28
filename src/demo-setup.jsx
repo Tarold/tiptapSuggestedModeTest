@@ -1,0 +1,95 @@
+import * as Y from 'yjs';
+
+export function toBase64String(uint8Array) {
+  return btoa(String.fromCharCode(...new Uint8Array(uint8Array)));
+}
+
+export function fromBase64String(base64String) {
+  const decodedString = atob(base64String);
+  const uint8Array = new Uint8Array(decodedString.length);
+
+  for (let i = 0; i < decodedString.length; i += 1) {
+    uint8Array[i] = decodedString.charCodeAt(i);
+  }
+
+  return uint8Array;
+}
+
+/**
+ * This is pretty difficult to set-up, but just for the sake of the demo, we automatically apply updates to the document and create versions.
+ * To create these versions, the updates have to be pulled from the same document history.
+ */
+const UPDATES = {
+  1: 'AAMAAw4MyIza9R0qz9WTng8ANAEAAggCQgAYAhQCCgIYAgwCzAGEBQMBRIQBAwDKAbQBAkKAAwJCADgCQpIFAwAAkgEC/BEATycCCAAoAAcBBAAoAIcABwAEAIYAhACGAIQAhgCEAIYAhACHAAcCBACHAAcBBACHAAcABACHAAcABAAoAIcABwAEAIcABwEEAIcBBAAhAKjwBsIGX190aXB0YXBjb2xsYWJfX3VzZXJzSnVzdGluZSBCYXRlbWFuaWRzZHNfX3RpcHRhcGNvbGxhYl9fY29uZmlnYXV0b1ZlcnNpb25pbmdkZWZhdWx0aGVhZGluZ0hpIHRoZXJlLGxldmVscGFyYWdyYXBodGhpcyBpcyBhIGl0YWxpY2Jhc2ljaXRhbGljIGV4YW1wbGUgb2YgYm9sZFRpcHRhcGJvbGQuIFN1cmUsIHRoZXJlIGFyZSBhbGwga2luZCBvZiBiYXNpYyB0ZXh0IHN0eWxlcyB5b3XigJlkIHByb2JhYmx5IGV4cGVjdCBmcm9tIGEgdGV4dCBlZGl0b3IuIEJ1dCB3YWl0IHVudGlsIHlvdSBzZWUgdGhlIGxpc3RzOmJ1bGxldExpc3RsaXN0SXRlbXBhcmFncmFwaFRoYXTigJlzIGEgYnVsbGV0IGxpc3Qgd2l0aCBvbmUg4oCmbGlzdEl0ZW1wYXJhZ3JhcGjigKYgb3IgdHdvIGxpc3QgaXRlbXMucGFyYWdyYXBoSXNu4oCZdCB0aGF0IGdyZWF0PyBBbmQgYWxsIG9mIHRoYXQgaXMgZWRpdGFibGUuIEJ1dCB3YWl0LCB0aGVyZeKAmXMgbW9yZS4gTGV04oCZcyB0cnkgYSBjb2RlIGJsb2NrOmNvZGVCbG9ja2JvZHkgewogIGRpc3BsYXk6IG5vbmU7Cn1sYW5ndWFnZXBhcmFncmFwaEkga25vdywgSSBrbm93LCB0aGlzIGlzIGltcHJlc3NpdmUuIEl04oCZcyBvbmx5IHRoZSB0aXAgb2YgdGhlIGljZWJlcmcgdGhvdWdoLiBHaXZlIGl0IGEgdHJ5IGFuZCBjbGljayBhIGxpdHRsZSBiaXQgYXJvdW5kLiBEb27igJl0IGZvcmdldCB0byBjaGVjayB0aGUgb3RoZXIgZXhhbXBsZXMgdG9vLmJsb2NrcXVvdGVwYXJhZ3JhcGhXb3csIHRoYXTigJlzIGFtYXppbmcuIEdvb2Qgd29yaywgYm95ISDwn5GPIGhhcmRCcmVha+KAlCBNb21fX3RpcHRhcGNvbGxhYl9fY29uZmlnbGFzdFNhdmVkFQ8DAhYORwAJBQkKBgUGDAQGBLsBCggJHwgJFAmeAQkZCAmnAgoJKAkFFgkJAQAAAgEBABYBGAFAAAMGAwZDAQZDAAYDBgMGAwZDAAYDBgJBBAIuAHtB7etoYQAAAH0AfQJ2AH52AH53A2NzcwIAe0J5Ld9URVAAAc/qic8HAQAA',
+  2: 'AAMAAxAMyIza9R05z9WTng8ARgEAAggCQgAYAhQCCgIYAgwCzAGEBQMBRIQBAwDKAbQBAkKAAwIkCG4AOAJCkgUDAACSAQL0BsQLhBIC3gusCwMAHAJk0BIDigsAYycCCAAoAAcBBAAoAIcABwAEAIYAhACGAIQAhgCEAIYAhACHAAcCBACHAAcBBACHAAcABACHAAcABACEASgAhwAHAAQAhwAHAQQAhwEEAMQAAwDEAIMAhwAHAQQAhAGDACEAqKAH6QZfX3RpcHRhcGNvbGxhYl9fdXNlcnNKdXN0aW5lIEJhdGVtYW5pZHNkc19fdGlwdGFwY29sbGFiX19jb25maWdhdXRvVmVyc2lvbmluZ2RlZmF1bHRoZWFkaW5nSGkgdGhlcmUsbGV2ZWxwYXJhZ3JhcGh0aGlzIGlzIGEgaXRhbGljYmFzaWNpdGFsaWMgZXhhbXBsZSBvZiBib2xkVGlwdGFwYm9sZC4gU3VyZSwgdGhlcmUgYXJlIGFsbCBraW5kIG9mIGJhc2ljIHRleHQgc3R5bGVzIHlvdeKAmWQgcHJvYmFibHkgZXhwZWN0IGZyb20gYSB0ZXh0IGVkaXRvci4gQnV0IHdhaXQgdW50aWwgeW91IHNlZSB0aGUgbGlzdHM6YnVsbGV0TGlzdGxpc3RJdGVtcGFyYWdyYXBoVGhhdOKAmXMgYSBidWxsZXQgbGlzdCB3aXRoIG9uZSDigKZsaXN0SXRlbXBhcmFncmFwaOKApiBvciB0d28gbGlzdCBpdGVtcy5wYXJhZ3JhcGhJc27igJl0IHRoYXQgZ3JlYXQ/IEFuZCBhbGwgb2YgdGhhdCBpcyBlZGl0YWJsZS4gQnV0IHdhaXQsIHRoZXJl4oCZcyBtb3JlLiBMZXTigJlzIHRyeSBhIGNvZGUgYmxvY2s6Y29kZUJsb2NrYm9keSB7CiAgZGlzcGxheTogbm9uZTsKfWxhbmd1YWdlcGFyYWdyYXBoSSBrbm93LCBJIGtub3csIHRoaXMgaXMgaW1wcmVzc2l2ZS4gSXTigJlzIG9ubHkgdGhlIHRpcCBvZiB0aGUgaWNlYmVyZyB0aG91Z2guIEdpdmUgaXQgYSB0cnkgYW5kIGNsaWNrIGEgbGl0dGxlIGJpdCBhcm91bmQuIERvbuKAmXQgZm9yZ2V0IHRvIGNoZWNrIHRoZSBvdGhlciBleGFtcGxlcyB0b28uYmxvY2txdW90ZXBhcmFncmFwaFdvdywgdGhhdOKAmXMgYW1hemluZy4gR29vZCB3b3JrLCBib3khIPCfkY8gaGFyZEJyZWFr4oCUIE1vbWhpZGRlbmxpc3RJdGVtcGFyYWdyYXBoT3IsIGV2ZW4gdGhyZWVlP19fdGlwdGFwY29sbGFiX19jb25maWdsYXN0U2F2ZWQVDwMCFg5HAAkFCQoGBQYMBAYEuwEKCAkfCAkUCZ4BCRIEAwgJpwIKCSgJBQEFCAkOQQAWCQkBAAACAQEAGgEbAUAAAwYDBkMBBkMABgMGAwYDBkMABgMGQwAGBEECBAECOwB7Qe3raGEAAAB9AH0CdgB+dgB+dwNjc3MKAYiG7foOAeECBAsBiIbt+g4CHQEjAQoBiIbt+g4B3QQBAgB7Qnkt310MUAACiIbt+g4EHQAFAL0CA/gBAM/qic8HAQAD',
+  3: 'AAMAAxGzAbDjy4ketZfSqQaw48uJHsiM2vUdR4/Vk54PqJf0qA2P1ZOeD+mDm5kNAsiM2vUdAOmDm5kNAIiM2vUd17SgtQYDyIza9R0B17SgtQYAiIza9R3XtKC1BgGIjNr1Hde0oLUGBsiM2vUdAte0oLUGAMiM2vUdANe0oLUGALWX0qkGqJf0qA3e+Iz5AQTIjNr1HQDe+Iz5AQSIjNr1HZ74jPkByIza9R0A3viM+QEByIza9R0CnAEMTAEAAggDAEQAGAMAEgIKAhgCDALMAYQFAwESDmSEAQMABgLSAbQBAhYKYoADAiQIbgA4AjAUxgGSBQMAgAEGxgGSAQIE+AbEC4QSAt4LrAsDARoCZNASRgAClgzUDAZKAAMAuAcA8AcAQhQIQgYCBgJEBlCIEeIQBLYQ9BAG0AFIAAMABogLxAsCjAHQAZYBQgS6EOoQBAK8BAIaigsAkAEA3ATyB7IH7gcYiBEAzAG6AQLoCwLbAaEAqAAnAggAKAAHAQQAgQAoAIcABwABAIQAgQCEAIEAhACGAIQAhgCEAIcABwIEAIEAhACHAAcBAQCEAYcABwAEAIEAhACHAAcABACBAIQAKACHAAcABACEAYcABwEEAIEAhACHAQQAgQDEAAMAxACDAIcABwEBAIQAgQCEAIMAIQChACcCCAAhAMQAAwDEACcCCAAhAAMAxADGAcQAgwCEAIEAgwCBAIMChACDAMQBgwDEAIQAgwCEAKEAJwIIACEAAwCDAMcABwAEAIEAgwGEAEQAgwDEAIMCxNwJ/ghfX3RpcHRhcGNvbGxhYl9fdXNlcnNKdXN0aW5lIEJhdGVtYW5pZHNkc19fdGlwdGFwY29sbGFiX19jb25maWdhdXRvVmVyc2lvbmluZ2RlZmF1bHRoZWFkaW5nSGxldmVscGFyYWdyYXBoaGlzIGlzIGEgYmFzaWMgZXhhbXBsZSBvZiBib2xkVGlwdGFwYm9sZC4gU3VyZSwgdGhlcmUgYXJlIGFsbCBraW5kIG9mIGJhc2ljIHRleHQgc3R5bGVzIHlvdeKAmWQgcHJvYmFibHkgZXhwZWN0IGZyb20gYSB0ZXh0IGVkaXRvci4gQnV0IHdhaXQgdW50aWwgeW91IHNlZSB0aGUgbGlzdHM6YnVsbGV0TGlzdGxpc3RJdGVtcGFyYWdyYXBoVGhhdOKAmXMgYSBsaXN0IHdpdGggb25lIOKApmxpc3RJdGVtcGFyYWdyYXBociB0d28gbGlzdCBpdGVtcy5wYXJhZ3JhcGhJc27igJl0IHRoYXQgPyBBbmQgYWxsIG9mIHRoYXQgaXMgZWRpdGFibGUuIEJ1dCB3YWl0LCB0aGVyZeKAmXMgbW9yZS4gTGV04oCZcyB0cnkgYSBjb2RlIGJsb2NrOmNvZGVCbG9ja2JvZHkgewogIGRpc3BsYXk6IDsKfWxhbmd1YWdlcGFyYWdyYXBoSSBrbm93LCBJIGtub3csIHRoaXMgaXMgaW1wcmVzc2l2ZS4gSXTigJlzIG9ubHkgdGhlIHRpcCBvZiB0aGUgaWNlYmVyZyB0aG91Z2guIEdpdmUgaXQgYSB0cnkgYW5kIGNsaWNrIGEgbGl0dGxlIGJpdCBhcm91bmQuIERvbuKAmXQgZm9yZ2V0IHRvIGNoZWNrIHRoZSBvdGhlciBleGFtcGxlcyB0b28uYmxvY2txdW90ZXBhcmFncmFwaFdvdywgdGhhdOKAmXMgYW1hemluZy4gR29vZCB3b3JrLCAhIPCfkY8gaGFyZEJyZWFr4oCUIGhpZGRlbmxpc3RJdGVtcGFyYWdyYXBociwgZXZlbiB0aHJlZT9fX3RpcHRhcGNvbGxhYl9fY29uZmlnbGFzdFNhdmVkX190aXB0YXBjb2xsYWJfX3VzZXJzRGViYmllIEhhcnJ5aWRzZHNfX3RpcHRhcGNvbGxhYl9fY29uZmlnYXV0b1ZlcnNpb25pbmdhbWF6aW5nX190aXB0YXBjb2xsYWJfX3VzZXJzVG9tIENydWlzZWlkc2RzX190aXB0YXBjb2xsYWJfX2NvbmZpZ2F1dG9WZXJzaW9uaW5nc2JvbGRib2xkdXBlciBjb29sZWxsbyBXb3JsZCFUbWFuRGFkX190aXB0YXBjb2xsYWJfX3VzZXJzQ2hyaXN0aW5hIEFwcGxlZ2F0ZWlkc2RzX190aXB0YXBjb2xsYWJfX2NvbmZpZ2F1dG9WZXJzaW9uaW5ncGFyYWdyYXBoTW9yZSBjb250ZW50IHRoZSBiZXR0ZXI/IFJpZ2h0PyEgUmlnaHQuLi4uLi4gb08sFQ8DAhYORwABBUkABQwEBgS7AQoISQAPCAkBEAkLjgEJEgMICRgKhQIKCSAFCQIBBQgJDQEWCRUMAwIWDgEGFQoDAhYOAUQACQEKQQACAQIVEwMCFg4JJgMEQQEfAQAAAgEBABoBAQACAQAAAAEAAAIBAAAAAQAAAgEAACYBQAADBgMGQwEGQwAGAwYDBgMGQwAGAwZDAAYBQAABQAABQAADBhhBAghBAgcDBQQBQwBBAAQFQQJCAAdBAAIIAgB7Qnkt33oS0ABJAHtB7etoYQAAAH0AfQJ2AH53A2NzcwoBiIbt+g4B4QIECwGIhu36DgIdASMBCgGIhu36DgHdBAEBAAEACAB9qYObmQ0KAYiG7foOAYMDChsAfZe0oLUGCgGIhu36DgH6AQV2AH4JAYiG7foOAQgICQGXmtCaAwEVAQkBl5rQmgMBGAEJAZea0JoDARcCCQGXmtCaAwEUAgkBiIbt+g4BEwEKAYiG7foOAbUEAwoBiIbt+g4BwQQDAQAWAH2e+Iz5AQoBiIbt+g4BwAEGCgGIhu36DgHGAQEIAZ68xnwBMAEIAZ68xnwBLwIKAYiG7foOAc8EAQoBiIbt+g4B2wEBCgGIhu36DgHaAQIKAYiG7foOAdkBAwjw8eWEDwEAAIiG7foODQgHAwAJAAUAnAEGEgIeBGIDHgmoAQIJAgsADQDP6onPBwEAA+iLutQGAQAE6cHNzAYBBACXmtCaAwMEAA8BAQH1i+mUAwEABp68xnwCBAAqAQ==',
+};
+
+async function applyAndWaitForUpdate({ doc, update, provider, versionName }) {
+  await new Promise((resolve) => {
+    doc.once('updateV2', () => {
+      resolve(null);
+    });
+
+    doc.transact((t) => {
+      Y.applyUpdateV2(t.doc, fromBase64String(update));
+    });
+  });
+
+  const versionId = await new Promise((resolve) => {
+    const handleStatelessEvent = (data) => {
+      const payload = JSON.parse(data.payload);
+
+      if (payload.event === 'version.created') {
+        provider.off('stateless', handleStatelessEvent);
+        setTimeout(() => resolve(payload.version), 100);
+      }
+    };
+
+    provider.on('stateless', handleStatelessEvent);
+    provider.sendStateless(
+      JSON.stringify({ action: 'version.create', name: versionName })
+    );
+  });
+
+  return versionId;
+}
+
+export function recordDocumentChanges(doc) {
+  // Every time the document is updated, we encode the state as a base64 string and log it to the console.
+  doc.on('update', () => {
+    const state = Y.encodeStateAsUpdateV2(doc);
+    const base64String = toBase64String(state);
+
+    // eslint-disable-next-line no-console
+    console.log(base64String);
+  });
+}
+
+export const setupProvider = async (provider, doc) => {
+  await provider.isSynced;
+  // doc
+  //   .getMap<number>('__tiptapcollab__config')
+  //   .set('autoVersioning', 0)
+
+  await applyAndWaitForUpdate({
+    doc,
+    update: UPDATES[1],
+    provider,
+    versionName: 'Version 1',
+  });
+
+  await applyAndWaitForUpdate({
+    doc,
+    update: UPDATES[2],
+    provider,
+    versionName: 'Version 2',
+  });
+
+  await applyAndWaitForUpdate({
+    doc,
+    update: UPDATES[3],
+    provider,
+    versionName: 'Version 3',
+  });
+};
