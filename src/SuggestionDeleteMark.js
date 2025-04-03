@@ -5,16 +5,6 @@ export const SuggestionDeleteMark = Mark.create({
 
   addAttributes() {
     return {
-      dataSuggestionDelete: {
-        default: null,
-        parseHTML: (element) => element.getAttribute('data-suggestion-delete'),
-        renderHTML: (attributes) =>
-          attributes?.dataSuggestionDelete
-            ? {
-                'data-suggestion-delete': attributes.dataSuggestionDelete,
-              }
-            : {},
-      },
       suggestionId: {
         default: null,
         parseHTML: (el) => el.getAttribute('data-suggestion-id'),
@@ -41,16 +31,15 @@ export const SuggestionDeleteMark = Mark.create({
   parseHTML() {
     return [
       {
-        tag: 'span[data-suggestion-delete]',
+        tag: 'delete',
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
-      'span',
+      'delete',
       mergeAttributes(HTMLAttributes, {
-        'data-suggestion-delete': 'true',
         title: 'Suggested deletion',
       }),
       0,

@@ -1,42 +1,31 @@
-import { Mark, mergeAttributes } from "@tiptap/core";
+import { Mark, mergeAttributes } from '@tiptap/core';
 
 export const SuggestionInsertMark = Mark.create({
-  name: "suggestion_insert",
+  name: 'suggestion_insert',
 
   addAttributes() {
     return {
-      dataSuggestionInsert: {
-        "default": null,
-        "parseHTML": (element) =>
-          element.getAttribute("data-suggestion-insert"),
-        "renderHTML": (attributes) =>
-          attributes?.dataSuggestionInsert
-            ? {
-                "data-suggestion-insert": attributes.dataSuggestionInsert,
-              }
-            : {},
-      },
       suggestionId: {
         default: null,
-        parseHTML: (element) => element.getAttribute("data-suggestion-id"),
+        parseHTML: (element) => element.getAttribute('data-suggestion-id'),
         renderHTML: (attributes) => {
           if (!attributes.suggestionId) return {};
           return {
-            "data-suggestion-id": attributes.suggestionId,
+            'data-suggestion-id': attributes.suggestionId,
           };
         },
       },
       username: {
         default: null,
-        parseHTML: (el) => el.getAttribute("data-username"),
+        parseHTML: (el) => el.getAttribute('data-username'),
         renderHTML: (attrs) =>
-          attrs.username ? { "data-username": attrs.username } : {},
+          attrs.username ? { 'data-username': attrs.username } : {},
       },
       createdAt: {
         default: null,
-        parseHTML: (el) => el.getAttribute("data-created-at"),
+        parseHTML: (el) => el.getAttribute('data-created-at'),
         renderHTML: (attrs) =>
-          attrs.createdAt ? { "data-created-at": attrs.createdAt } : {},
+          attrs.createdAt ? { 'data-created-at': attrs.createdAt } : {},
       },
     };
   },
@@ -44,17 +33,16 @@ export const SuggestionInsertMark = Mark.create({
   parseHTML() {
     return [
       {
-        tag: "span[data-suggestion-insert]",
+        tag: 'insert',
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
-      "span",
+      'insert',
       mergeAttributes(HTMLAttributes, {
-        "data-suggestion-insert": "true",
-        title: "Suggested change",
+        title: 'Suggested change',
       }),
       0,
     ];
