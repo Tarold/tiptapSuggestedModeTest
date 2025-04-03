@@ -1,0 +1,85 @@
+span[data-suggestion-insert] {
+  background-color: rgba(62, 187, 0, 0.549);
+  text-decoration: underline;
+}
+span[data-suggestion-delete] {
+  background-color: rgba(210, 0, 0, 0.507);
+  text-decoration: line-through;
+}
+
+.suggestion-group {
+  position: relative;
+  display: inline;
+}
+
+.suggestion-add {
+  color: green;
+  text-decoration: underline;
+}
+
+.suggestion-add:hover {
+  background-color: rgb(0, 255, 0, 0.2);
+}
+
+.suggestion-delete {
+  text-decoration: line-through;
+  color: red;
+}
+
+.suggestion-delete:hover {
+  background-color: rgb(255, 0, 0, 0.2);
+}
+
+.suggestion-hover-menu {
+  display: none;
+  position: absolute;
+  background-color: #f0f0f0;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 0px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  min-width: 150px;
+  white-space: nowrap;
+  color: black;
+}
+
+.suggestion-buttons {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.suggestion-accept,
+.suggestion-reject {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.suggestion-accept {
+  background-color: #4caf50;
+  color: white;
+}
+
+.suggestion-reject {
+  background-color: #f44336;
+  color: white;
+}
+
+.suggestion-accept:hover {
+  background-color: #45a049;
+}
+
+.suggestion-reject:hover {
+  background-color: #d32f2f;
+}
+
+.suggestion-info {
+  margin-bottom: 5px;
+}

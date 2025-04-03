@@ -1,16 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent, FloatingMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
-
-const extensions = [StarterKit, Highlight.configure({ multicolor: true })];
+import { SuggestionInsertMark } from './SuggestionInsertMark';
+import { SuggestionDeleteMark } from './SuggestionDeleteMark';
+import { SuggestionModeExtension } from './suggestion-mode';
+import './styles.css';
+const extensions = [
+  StarterKit,
+  Highlight.configure({ multicolor: true }),
+  SuggestionInsertMark,
+  SuggestionDeleteMark,
+  SuggestionModeExtension,
+];
 
 const content = '<p>Hello World!</p>';
 
 const Tiptap = () => {
+  const [newContent, setNewContent] = useState(content);
   const editor = useEditor({
     extensions,
-    content,
+    content: newContent,
+    onUpdate: ({ editor }) => {
+      setNewContent(editor.getHTML());
+    },
   });
 
   return (
