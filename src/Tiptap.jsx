@@ -1,16 +1,29 @@
-import React from 'react';
-import { useEditor, EditorContent, FloatingMenu } from '@tiptap/react';
+import React, { useState } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Highlight from '@tiptap/extension-highlight';
-
-const extensions = [StarterKit, Highlight.configure({ multicolor: true })];
-
-const content = '<p>Hello World!</p>';
+import TrackChangeExtension from './track.tsx';
 
 const Tiptap = () => {
+  const extensions = [
+    StarterKit,
+    TrackChangeExtension.configure({
+      enabled: true,
+      dataOpUserId: '12',
+      dataOpUserNickname: '1221',
+      onStatusChange(status) {
+        console.log('Status changed:', status);
+      },
+    }),
+  ];
+  const [content, setContent] = useState('<p>Hello World!</p>');
+
   const editor = useEditor({
     extensions,
     content,
+    onUpdate: () => {
+      setContent(editor.getHTML());
+      console.log(content);
+    },
   });
 
   return (
@@ -22,7 +35,8 @@ const Tiptap = () => {
         Toggle highlight
       </button>
       <EditorContent editor={editor} />
-      <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
+      <span dangerouslySetInnerHTML={{ __html: content }}></span>
+      {content}
     </>
   );
 };
